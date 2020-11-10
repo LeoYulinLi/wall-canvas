@@ -2,6 +2,7 @@ import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import normal from "../../assets/Tileable_Red_Brick_Texturise_NORMAL.jpg";
 import wall from "../../assets/Tileable_Red_Brick_Texturise.jpg";
 import throttle from "lodash.throttle";
+import alpha from "color-alpha";
 
 const Palette: FC = () => {
 
@@ -63,17 +64,23 @@ const Panel: FC = () => {
 
   const drawingLayer = useRef(document.createElement("canvas"));
 
+  const normalImage = useRef(document.createElement("img"));
+
+  const wallImage = useRef(document.createElement("img"));
+
   const [diffuse, setDiffuse] = useState<Uint8ClampedArray | null>(null);
 
   const [shading, setShading] = useState<number[]>([]);
 
   const [specular, setSpecular] = useState<number[]>([]);
 
-  const normalImage = useRef(document.createElement("img"));
-
-  const wallImage = useRef(document.createElement("img"));
-
   const [mouseDown, setMouseDown] = useState(false);
+
+  const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 800 });
+
+  const [strokeColor, setStrokeColor] = useState("rgb(154,255,232)");
+
+  const [strokeWidth, setStrokeWidth] = useState(40);
 
   const [mousePosition, _setMousePosition] = useState<{ prev: Point2D | null, current: Point2D | null }>({
     prev: null,
@@ -82,85 +89,104 @@ const Panel: FC = () => {
 
   const setMousePosition = useCallback(throttle(_setMousePosition, 20), []);
 
+  // initialize canvas
   useEffect(() => {
     if (divRef.current) {
-      normalImage.current.src = normal;
-      normalImage.current.onload = () => {
-        const memCanvas = document.createElement("canvas")!;
-        divRef.current?.appendChild(canvas.current);
-        const context = memCanvas.getContext("2d")!;
-        const { width, height } = normalImage.current;
-        memCanvas.width = width;
-        memCanvas.height = height;
-        context.drawImage(normalImage.current, 0, 0);
-        const imageData = context.getImageData(0, 0, width, height);
-        const { data } = imageData;
-
-        // See: https://en.wikipedia.org/wiki/Phong_reflection_model
-        const dotProducts: number[] = [];
-        const dotReflection: number[] = [];
-        const l = [1, 3, 5];
-        const unitL = normalize(l);
-        const unitV = [0, 0, 1];
-        for (let i = 0; i < data.length; i += 4) {
-          const n = [data[i] - 128, data[i + 1] - 128, data[i + 2] - 128];
-          const unitN = normalize(n);
-          const dotLN = dot(unitN, unitL);
-
-          dotProducts.push(dotLN);
-
-          const r: number[] = [];
-          for (let a = 0; a < 3; a++) {
-            r[a] = 2 * dotLN * (unitN[a] - unitL[a]);
-          }
-          const unitR = normalize(r);
-          const dotRV = dot(unitR, unitV);
-
-          dotReflection.push(Math.pow(dotRV, 10));
-
-          data[i] = Math.floor(dotLN * 255);
-          data[i + 1] = Math.floor(dotLN * 255);
-          data[i + 2] = Math.floor(dotLN * 255);
-        }
-
-        setShading(dotProducts);
-        setSpecular(dotReflection);
-
-        canvas.current.height = height;
-        canvas.current.width = width;
-
-        drawingLayer.current.width = width;
-        drawingLayer.current.height = height;
-
-        const drawingContext = drawingLayer.current.getContext("2d")!;
-        drawingContext.putImageData(imageData, 0, 0);
-        drawingContext.lineCap = "round";
-        const drawingImageData = drawingContext.getImageData(0, 0, width, height);
-        const { data: drawingData } = drawingImageData;
-
-        for (let i = 0; i < drawingData.length; i += 4) {
-          drawingData[i + 3] = 0;
-        }
-
-        drawingContext.putImageData(drawingImageData, 0, 0, 0, 0, width, height);
-
-      };
-
-      wallImage.current.src = wall;
-      wallImage.current.onload = () => {
-        const memCanvas = document.createElement("canvas")!;
-        const context = memCanvas.getContext("2d")!;
-        const { width, height } = wallImage.current;
-        memCanvas.width = width;
-        memCanvas.height = height;
-        context.drawImage(wallImage.current, 0, 0);
-        const imageData = context.getImageData(0, 0, width, height);
-        setDiffuse(imageData.data);
-      };
-
+      divRef.current?.appendChild(canvas.current);
+      const { width, height } = canvasSize;
+      canvas.current.height = height;
+      canvas.current.width = width;
+      canvas.current.setAttribute("style", `width: ${width / 2}px`);
     }
   }, [divRef.current]);
 
+
+  // compute shading
+  useEffect(() => {
+    normalImage.current.src = normal;
+    normalImage.current.onload = () => {
+      const memCanvas = document.createElement("canvas")!;
+      const context = memCanvas.getContext("2d")!;
+      const { width, height } = canvasSize;
+      memCanvas.width = width;
+      memCanvas.height = height;
+
+      const pattern = context.createPattern(normalImage.current, "repeat")!;
+      context.fillStyle = pattern;
+      context.fillRect(0, 0, width, height);
+
+
+      const imageData = context.getImageData(0, 0, width, height);
+      const { data } = imageData;
+
+      // See: https://en.wikipedia.org/wiki/Phong_reflection_model
+      const dotProducts: number[] = [];
+      const dotReflection: number[] = [];
+      const l = [1, 3, 6];
+      const unitL = normalize(l);
+      const unitV = [0, 0, 1];
+      for (let i = 0; i < data.length; i += 4) {
+        const n = [data[i] - 128, data[i + 1] - 128, data[i + 2] - 128];
+        const unitN = normalize(n);
+        const dotLN = dot(unitN, unitL);
+
+        dotProducts.push(dotLN);
+
+        const r: number[] = [];
+        for (let a = 0; a < 3; a++) {
+          r[a] = 2 * dotLN * (unitN[a] - unitL[a]);
+        }
+        const unitR = normalize(r);
+        const dotRV = dot(unitR, unitV);
+
+        dotReflection.push(Math.pow(dotRV, 3));
+
+        data[i] = Math.floor(dotLN * 255);
+        data[i + 1] = Math.floor(dotLN * 255);
+        data[i + 2] = Math.floor(dotLN * 255);
+      }
+
+      setShading(dotProducts);
+      setSpecular(dotReflection);
+
+      drawingLayer.current.width = width;
+      drawingLayer.current.height = height;
+
+      const drawingContext = drawingLayer.current.getContext("2d")!;
+      drawingContext.putImageData(imageData, 0, 0);
+      drawingContext.lineCap = "round";
+      const drawingImageData = drawingContext.getImageData(0, 0, width, height);
+      const { data: drawingData } = drawingImageData;
+
+      for (let i = 0; i < drawingData.length; i += 4) {
+        drawingData[i + 3] = 0;
+      }
+
+      drawingContext.putImageData(drawingImageData, 0, 0, 0, 0, width, height);
+    };
+
+  }, [canvasSize]);
+
+  // compute diffuse (texture)
+  useEffect(() => {
+    wallImage.current.src = wall;
+    wallImage.current.onload = () => {
+      const memCanvas = document.createElement("canvas")!;
+      const context = memCanvas.getContext("2d")!;
+      const { width, height } = canvasSize;
+      memCanvas.width = width;
+      memCanvas.height = height;
+
+      const pattern = context.createPattern(wallImage.current, "repeat")!;
+      context.fillStyle = pattern;
+      context.fillRect(0, 0, width, height);
+
+      const imageData = context.getImageData(0, 0, width, height);
+      setDiffuse(imageData.data);
+    };
+  }, [canvasSize]);
+
+  // update mouse location
   useEffect(() => {
     canvas.current.onmousemove = ev => {
       if (mouseDown) {
@@ -200,13 +226,13 @@ const Panel: FC = () => {
     canvas.current.onmouseleave = onMouseExit;
   }, []);
 
+  // put shaded texture onto canvas
   useEffect(() => {
 
     if (shading.length === 0 || !diffuse) return;
 
     const canvasContext = canvas.current.getContext("2d")!;
-    const width = canvas.current.width;
-    const height = canvas.current.height;
+    const { width, height } = canvasSize;
     const canvasImageData = canvasContext.getImageData(0, 0, width, height);
     const { data: canvasData } = canvasImageData;
 
@@ -226,18 +252,21 @@ const Panel: FC = () => {
 
   }, [shading, diffuse]);
 
+  // draw and shade
   useEffect(() => {
     const drawingContext = drawingLayer.current.getContext("2d")!;
     const canvasContext = canvas.current.getContext("2d")!;
     if (mousePosition.prev && mousePosition.current && diffuse) {
       const { prev, current } = mousePosition;
-      interpolation(prev, current, 10).forEach(({x, y}) => {
-        const blob = drawingContext.createRadialGradient(x, y, 0, x, y, 40);
-        blob.addColorStop(0, "rgba(0,191,0,1.0)");
-        blob.addColorStop(0.5, "rgba(0,191,0,0.3)");
-        blob.addColorStop(1, "rgba(0, 191, 0, 0)");
+      // See: http://perfectionkills.com/exploring-canvas-drawing-techniques/
+      interpolation(prev, current, strokeWidth / 4).forEach(({x, y}) => {
+        const blob = drawingContext.createRadialGradient(x, y, 0, x, y, strokeWidth);
+
+        blob.addColorStop(0, strokeColor);
+        blob.addColorStop(0.5, alpha(strokeColor, 0.3));
+        blob.addColorStop(1, alpha(strokeColor, 0.0));
         drawingContext.fillStyle = blob;
-        drawingContext.fillRect(x - 40, y - 40, 80, 80);
+        drawingContext.fillRect(x - strokeWidth, y - strokeWidth, strokeWidth * 2, strokeWidth * 2);
       });
       const { x: xp, y: yp } = prev;
       const { x: xc, y: yc } = current;
@@ -253,8 +282,7 @@ const Panel: FC = () => {
       const dx = x2 - x + 40;
       const dy = y2 - y + 40;
 
-      const width = drawingLayer.current.width;
-      const height = drawingLayer.current.height;
+      const { width, height } = canvasSize;
 
       const drawingImageData = drawingContext.getImageData(0, 0, width, height);
       const { data: drawingData } = drawingImageData;
@@ -272,12 +300,12 @@ const Panel: FC = () => {
 
         const alpha = drawingData[i * 4 + 3] / 255;
 
-        const i_s = alpha * specular[i] * 500000;
+        const i_s = alpha * specular[i] * 2000;
 
         const i_d = {
-          r: alpha * drawingData[i * 4] * shading[i],
-          g: alpha * drawingData[i * 4 + 1] * shading[i],
-          b: alpha * drawingData[i * 4 + 2] * shading[i]
+          r: alpha * (8 + drawingData[i * 4]) * shading[i],
+          g: alpha * (8 + drawingData[i * 4 + 1]) * shading[i],
+          b: alpha * (8 + drawingData[i * 4 + 2]) * shading[i]
         };
 
         canvasData[i * 4] = i_d.r + i_s + (1 - alpha) * diffuse[i * 4];
