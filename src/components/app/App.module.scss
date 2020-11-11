@@ -1,0 +1,15 @@
+@media screen and (min-height: 900px) {
+  .appContainer {
+    padding-top: 4em;
+  }
+}
+
+.appContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.appHeader {
+  text-align: center;
+}

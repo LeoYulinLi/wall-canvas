@@ -1,18 +1,60 @@
-import React, { FC, useCallback, useEffect, useRef, useState } from "react";
+import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import normal from "../../assets/Tileable_Red_Brick_Texturise_NORMAL.jpg";
 import wall from "../../assets/Tileable_Red_Brick_Texturise.jpg";
 import throttle from "lodash.throttle";
 import alpha from "color-alpha";
+import { CompactPicker } from "react-color";
+import { Form } from "react-bootstrap";
+import styles from "./Panel.module.scss";
 
-const Palette: FC = () => {
+interface PaletteTypes {
+  strokeColor: string,
+  setStrokeColor: Dispatch<SetStateAction<string>>
+  strokeWidth: number,
+  setStrokeWidth: Dispatch<SetStateAction<number>>
+}
 
-  const [colors, setColors] = useState(["#d00000", "#00a000", "#0000c0", "#eac300"]);
+const Palette: FC<PaletteTypes> = props => {
+
+  // eslint-disable-next-line react/prop-types
+  const { strokeColor, setStrokeColor, strokeWidth, setStrokeWidth } = props;
+
+  const [colors, setColors] = useState([
+    "#000000",
+    "#ffffff",
+    "#d00000",
+    "#ea8c00",
+    "#eac300",
+    "#00a000",
+    "#b7ea00",
+    "#0000c0",
+    "#00c7ea",
+    "#7500ea",
+    "#bf00ea",
+    "#ea00b0",
+    "#555555",
+    "#d2d2d2",
+    "#ffc6c6",
+    "#ffd999",
+    "#fff0ab",
+    "#adffad",
+    "#ecffb2",
+    "#9ad7ff",
+    "#9affe8",
+    "#9d9aff",
+    "#e4a8f3",
+    "#ff9ae6"
+  ]);
 
   return (
-    <div>
-      {colors.map(color => (
-        <span key={color}>{color}</span>
-      ))}
+    <div className={styles.palette}>
+      <CompactPicker onChange={color => setStrokeColor(color.hex)} color={strokeColor} colors={colors} className={styles.colorPicker}/>
+      <Form>
+        <Form.Group controlId="strokeWidth" className={styles.strokePicker}>
+          <Form.Label>Stroke Width: {strokeWidth}</Form.Label>
+          <Form.Control type="range" min={5} max={60} custom value={strokeWidth} onChange={event => setStrokeWidth(+event.target.value)}/>
+        </Form.Group>
+      </Form>
     </div>
   );
 };
@@ -56,7 +98,17 @@ function interpolation(p1: Point2D, p2: Point2D, step: number): Point2D[] {
   return points;
 }
 
-const Panel: FC = () => {
+interface PanelProps {
+  canvasWidth: number
+  canvasHeight: number
+}
+
+const Panel: FC<PanelProps> = props => {
+
+  const dpr = window.devicePixelRatio;
+
+  // eslint-disable-next-line react/prop-types
+  const { canvasWidth, canvasHeight } = props;
 
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -76,9 +128,9 @@ const Panel: FC = () => {
 
   const [mouseDown, setMouseDown] = useState(false);
 
-  const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 800 });
+  const [canvasSize, setCanvasSize] = useState({ width: canvasWidth * dpr, height: canvasHeight * dpr });
 
-  const [strokeColor, setStrokeColor] = useState("rgb(154,255,232)");
+  const [strokeColor, setStrokeColor] = useState("#9AFFE8");
 
   const [strokeWidth, setStrokeWidth] = useState(40);
 
@@ -89,6 +141,9 @@ const Panel: FC = () => {
 
   const setMousePosition = useCallback(throttle(_setMousePosition, 20), []);
 
+  console.log(canvas.current.getBoundingClientRect());
+
+
   // initialize canvas
   useEffect(() => {
     if (divRef.current) {
@@ -96,7 +151,7 @@ const Panel: FC = () => {
       const { width, height } = canvasSize;
       canvas.current.height = height;
       canvas.current.width = width;
-      canvas.current.setAttribute("style", `width: ${width / 2}px`);
+      canvas.current.setAttribute("style", `width: ${width / window.devicePixelRatio }px; max-width: 100%`);
     }
   }, [divRef.current]);
 
@@ -205,14 +260,42 @@ const Panel: FC = () => {
         });
       }
     };
+
+    canvas.current.ontouchmove = ev => {
+      ev.preventDefault();
+      if (mouseDown) {
+        const rect = canvas.current.getBoundingClientRect();
+        const scaleX = canvas.current.width / rect.width;
+        const scaleY = canvas.current.height / rect.height;
+        const x = ev.touches[0].clientX;
+        const y = ev.touches[0].clientY;
+
+        setMousePosition(({ current }) => {
+          return {
+            prev: current,
+            current: {
+              x: (x - rect.left) * scaleX,
+              y: (y - rect.top) * scaleY
+            }
+          };
+        });
+      }
+    };
+
+
   }, [canvas.current, mouseDown]);
 
   useEffect(() => {
-    canvas.current.onmousedown = () => {
+    const onMouseDown = (ev: MouseEvent | TouchEvent) => {
+      ev.preventDefault();
       setMouseDown(true);
     };
 
-    const onMouseExit = () => {
+    canvas.current.onmousedown = onMouseDown;
+    canvas.current.ontouchstart = onMouseDown;
+
+    const onMouseExit = (ev: MouseEvent | TouchEvent) => {
+      ev.preventDefault();
       setMouseDown(false);
       setMousePosition(({ current }) => {
         return {
@@ -223,7 +306,7 @@ const Panel: FC = () => {
     };
 
     canvas.current.onmouseup = onMouseExit;
-    canvas.current.onmouseleave = onMouseExit;
+    canvas.current.ontouchend = onMouseExit;
   }, []);
 
   // put shaded texture onto canvas
@@ -277,10 +360,10 @@ const Panel: FC = () => {
       const x2 = xp < xc ? xc : xp;
       const y2 = yp < yc ? yc : yp;
 
-      const x = x1 - 40;
-      const y = y1 - 40;
-      const dx = x2 - x + 40;
-      const dy = y2 - y + 40;
+      const x = x1 - strokeWidth;
+      const y = y1 - strokeWidth;
+      const dx = x2 - x + strokeWidth;
+      const dy = y2 - y + strokeWidth;
 
       const { width, height } = canvasSize;
 
@@ -317,7 +400,10 @@ const Panel: FC = () => {
   }, [drawingLayer.current, diffuse, canvas.current, mousePosition]);
 
   return (
-    <div ref={divRef}>
+    <div className={styles.panel}>
+      <div className={styles.canvasContainer} ref={divRef}>
+      </div>
+      <Palette strokeColor={strokeColor} setStrokeColor={setStrokeColor} strokeWidth={strokeWidth} setStrokeWidth={setStrokeWidth} />
     </div>
   );
 };
