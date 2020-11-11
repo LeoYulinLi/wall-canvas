@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC } from "react";
 import styles from "./App.module.scss";
 import { Container } from "react-bootstrap";
 import Panel from "../panel/Panel";
