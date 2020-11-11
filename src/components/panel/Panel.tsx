@@ -132,6 +132,7 @@ const Panel: FC<PanelProps> = props => {
 
   const [mouseDown, setMouseDown] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [canvasSize, setCanvasSize] = useState({ width: canvasWidth * dpr, height: canvasHeight * dpr });
 
   const [strokeColor, setStrokeColor] = useState("#9AFFE8");
@@ -151,11 +152,12 @@ const Panel: FC<PanelProps> = props => {
 
     const { width, height } = canvasSize;
 
-    const drawingContext = drawingLayer.current.getContext("2d")!;
+    const drawingContext = drawingLayer.current.getContext("2d");
+    const canvasContext = canvas.current.getContext("2d");
+    if (!drawingContext || !canvasContext) return;
+
     const drawingImageData = drawingContext.getImageData(0, 0, width, height);
     const { data: drawingData } = drawingImageData;
-
-    const canvasContext = canvas.current.getContext("2d")!;
     const canvasImageData = canvasContext.getImageData(0, 0, width, height);
     const { data: canvasData } = canvasImageData;
 
@@ -198,13 +200,21 @@ const Panel: FC<PanelProps> = props => {
   useEffect(() => {
     normalImage.current.src = normal;
     normalImage.current.onload = () => {
-      const memCanvas = document.createElement("canvas")!;
-      const context = memCanvas.getContext("2d")!;
+      const memCanvas = document.createElement("canvas");
+
+      const context = memCanvas.getContext("2d");
+      const drawingContext = drawingLayer.current.getContext("2d");
+
+      if (!context || !drawingContext) return;
+
       const { width, height } = canvasSize;
       memCanvas.width = width;
       memCanvas.height = height;
 
-      const pattern = context.createPattern(normalImage.current, "repeat")!;
+      const pattern = context.createPattern(normalImage.current, "repeat");
+
+      if (!pattern) return;
+
       context.fillStyle = pattern;
       context.fillRect(0, 0, width, height);
 
@@ -245,7 +255,6 @@ const Panel: FC<PanelProps> = props => {
       drawingLayer.current.width = width;
       drawingLayer.current.height = height;
 
-      const drawingContext = drawingLayer.current.getContext("2d")!;
       drawingContext.putImageData(imageData, 0, 0);
       drawingContext.lineCap = "round";
       const drawingImageData = drawingContext.getImageData(0, 0, width, height);
@@ -264,13 +273,19 @@ const Panel: FC<PanelProps> = props => {
   useEffect(() => {
     wallImage.current.src = wall;
     wallImage.current.onload = () => {
-      const memCanvas = document.createElement("canvas")!;
-      const context = memCanvas.getContext("2d")!;
+      const memCanvas = document.createElement("canvas");
+      const context = memCanvas.getContext("2d");
+
+      if (!context) return;
+
       const { width, height } = canvasSize;
       memCanvas.width = width;
       memCanvas.height = height;
 
-      const pattern = context.createPattern(wallImage.current, "repeat")!;
+      const pattern = context.createPattern(wallImage.current, "repeat");
+
+      if (!pattern) return;
+
       context.fillStyle = pattern;
       context.fillRect(0, 0, width, height);
 
@@ -349,10 +364,10 @@ const Panel: FC<PanelProps> = props => {
 
   // put shaded texture onto canvas
   useEffect(() => {
+    const canvasContext = canvas.current.getContext("2d");
 
-    if (shading.length === 0 || !diffuse) return;
+    if (shading.length === 0 || !diffuse || !canvasContext) return;
 
-    const canvasContext = canvas.current.getContext("2d")!;
     const { width, height } = canvasSize;
     const canvasImageData = canvasContext.getImageData(0, 0, width, height);
     const { data: canvasData } = canvasImageData;
@@ -373,8 +388,11 @@ const Panel: FC<PanelProps> = props => {
 
   // draw and shade
   useEffect(() => {
-    const drawingContext = drawingLayer.current.getContext("2d")!;
-    const canvasContext = canvas.current.getContext("2d")!;
+    const drawingContext = drawingLayer.current.getContext("2d");
+    const canvasContext = canvas.current.getContext("2d");
+
+    if (!drawingContext || !canvasContext) return;
+
     if (mousePosition.prev && mousePosition.current && diffuse) {
       const { prev, current } = mousePosition;
       // See: http://perfectionkills.com/exploring-canvas-drawing-techniques/
