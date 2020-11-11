@@ -1,6 +1,6 @@
 @media screen and (min-height: 900px) {
   .appContainer {
-    padding-top: 4em;
+    padding-top: 2em;
   }
 }
 
@@ -8,8 +8,10 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .appHeader {
   text-align: center;
+  margin-bottom: 1em;
 }

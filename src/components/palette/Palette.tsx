@@ -55,8 +55,10 @@ const Palette: FC<PaletteTypes> = props => {
           <Form.Control type="range" min={5} max={60} custom value={strokeWidth} onChange={event => setStrokeWidth(+event.target.value)}/>
         </Form.Group>
       </Form>
-      <Button type="button" variant="danger" onClick={() => setShowModal(true)}>Clear Drawing</Button>
-      <Button type="button" onClick={saveDrawing}>Save Drawing</Button>
+      <div className={styles.control}>
+        <Button type="button" variant="danger" onClick={() => setShowModal(true)}>Clear Drawing</Button>
+        <Button type="button" onClick={saveDrawing}>Save Drawing</Button>
+      </div>
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Clear Drawing</Modal.Title>

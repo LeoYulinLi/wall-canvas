@@ -6,7 +6,11 @@ import Panel from "../panel/Panel";
 const App: FC = () => {
   return (
     <Container className={styles.appContainer}>
-      <h1 className={styles.appHeader}>Wall Canvas</h1>
+      <div className={styles.appHeader}>
+        <h1>Wall Canvas</h1>
+        <p>A Graffiti Wall Canvas where Paint Looks Like Actual Paint</p>
+        <a href="https://github.com/LeoYulinLi/wall-canvas">Source Code and Behind the Scene</a>
+      </div>
       <Panel
         canvasWidth={screen.width > 800 ? 800 : screen.width}
         canvasHeight={screen.height - 100 > 600 ? 600 : screen.height - 100 } />
