@@ -288,7 +288,6 @@ const Panel: FC<PanelProps> = props => {
   useEffect(() => {
     const onMouseDown = (ev: PointerEvent) => {
       ev.preventDefault();
-      console.log("mousedown");
       setMouseDown(true);
     };
 
@@ -296,7 +295,6 @@ const Panel: FC<PanelProps> = props => {
 
     const onMouseExit = (ev: PointerEvent | TouchEvent) => {
       ev.preventDefault();
-      console.log("mouseup");
       setMouseDown(false);
       setMousePosition(({ current }) => {
         return {
