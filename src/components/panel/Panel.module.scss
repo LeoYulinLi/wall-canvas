@@ -3,6 +3,10 @@
     justify-content: center;
     flex-direction: column;
     flex-grow: 1;
+
+    canvas {
+        touch-action: none;
+    }
 }
 
 .canvasContainer {
