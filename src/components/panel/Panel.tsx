@@ -133,7 +133,10 @@ const Panel: FC<PanelProps> = props => {
   const [mouseDown, setMouseDown] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [canvasSize, setCanvasSize] = useState({ width: canvasWidth * dpr, height: canvasHeight * dpr });
+  const [canvasSize, setCanvasSize] = useState({
+    width: Math.floor(canvasWidth * dpr),
+    height: Math.floor(canvasHeight * dpr)
+  });
 
   const [strokeColor, setStrokeColor] = useState("#9AFFE8");
 
@@ -191,7 +194,7 @@ const Panel: FC<PanelProps> = props => {
       const { width, height } = canvasSize;
       canvas.current.height = height;
       canvas.current.width = width;
-      canvas.current.setAttribute("style", `width: ${width / window.devicePixelRatio }px; max-width: 100%`);
+      canvas.current.setAttribute("style", `width: ${width / dpr }px; max-width: 100%`);
     }
   }, [divRef.current]);
 
@@ -296,7 +299,8 @@ const Panel: FC<PanelProps> = props => {
 
   // update mouse location
   useEffect(() => {
-    canvas.current.onmousemove = ev => {
+    canvas.current.onpointermove = ev => {
+      ev.preventDefault();
       if (mouseDown) {
         const rect = canvas.current.getBoundingClientRect();
         const scaleX = canvas.current.width / rect.width;
@@ -306,8 +310,8 @@ const Panel: FC<PanelProps> = props => {
           return {
             prev: current,
             current: {
-              x: (ev.clientX - rect.left) * scaleX,
-              y: (ev.clientY - rect.top) * scaleY
+              x: Math.floor((ev.clientX - rect.left) * scaleX),
+              y: Math.floor((ev.clientY - rect.top) * scaleY)
             }
           };
         });
@@ -327,8 +331,8 @@ const Panel: FC<PanelProps> = props => {
           return {
             prev: current,
             current: {
-              x: (x - rect.left) * scaleX,
-              y: (y - rect.top) * scaleY
+              x: Math.floor((x - rect.left) * scaleX),
+              y: Math.floor((y - rect.top) * scaleY)
             }
           };
         });
@@ -339,16 +343,17 @@ const Panel: FC<PanelProps> = props => {
   }, [canvas.current, mouseDown]);
 
   useEffect(() => {
-    const onMouseDown = (ev: MouseEvent | TouchEvent) => {
+    const onMouseDown = (ev: PointerEvent) => {
       ev.preventDefault();
+      console.log("mousedown");
       setMouseDown(true);
     };
 
-    canvas.current.onmousedown = onMouseDown;
-    canvas.current.ontouchstart = onMouseDown;
+    canvas.current.onpointerdown = onMouseDown;
 
-    const onMouseExit = (ev: MouseEvent | TouchEvent) => {
+    const onMouseExit = (ev: PointerEvent | TouchEvent) => {
       ev.preventDefault();
+      console.log("mouseup");
       setMouseDown(false);
       setMousePosition(({ current }) => {
         return {
@@ -358,8 +363,8 @@ const Panel: FC<PanelProps> = props => {
       });
     };
 
-    canvas.current.onmouseup = onMouseExit;
     canvas.current.ontouchend = onMouseExit;
+    canvas.current.onpointerup = onMouseExit;
   }, []);
 
   // put shaded texture onto canvas
