@@ -4,7 +4,7 @@ import wall from "../../assets/Tileable_Red_Brick_Texturise.jpg";
 import throttle from "lodash.throttle";
 import alpha from "color-alpha";
 import { CompactPicker } from "react-color";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Modal } from "react-bootstrap";
 import styles from "./Panel.module.scss";
 
 interface PaletteTypes {
@@ -48,6 +48,8 @@ const Palette: FC<PaletteTypes> = props => {
     "#ff9ae6"
   ];
 
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <div className={styles.palette}>
       <CompactPicker onChange={color => setStrokeColor(color.hex)} color={strokeColor} colors={colors} className={styles.colorPicker}/>
@@ -57,8 +59,25 @@ const Palette: FC<PaletteTypes> = props => {
           <Form.Control type="range" min={5} max={60} custom value={strokeWidth} onChange={event => setStrokeWidth(+event.target.value)}/>
         </Form.Group>
       </Form>
-      <Button type="button" variant="danger" onClick={clearDrawing}>Clear Drawing</Button>
+      <Button type="button" variant="danger" onClick={() => setShowModal(true)}>Clear Drawing</Button>
       <Button type="button" onClick={saveDrawing}>Save Drawing</Button>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Modal heading</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to clear the current drawings? This action cannot be undone.</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+          <Button variant="danger" onClick={() => {
+            clearDrawing();
+            setShowModal(false);
+          }}>
+            Clear Drawing
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
