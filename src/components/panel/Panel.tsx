@@ -5,6 +5,7 @@ import throttle from "lodash.throttle";
 import alpha from "color-alpha";
 import styles from "./Panel.module.scss";
 import Palette from "../palette/Palette";
+import { Prompt } from "react-router-dom";
 
 interface Point2D {
   x: number,
@@ -411,6 +412,7 @@ const Panel: FC<PanelProps> = props => {
         clearDrawing={clearDrawing}
         saveDrawing={saveDrawing}
       />
+      <Prompt message={"Your changes will not be saved. Are you sure you want to navigate away?"} />
     </div>
   );
 };
