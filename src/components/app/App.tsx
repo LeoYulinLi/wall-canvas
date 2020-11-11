@@ -11,7 +11,7 @@ const App: FC = () => {
     <Container className={styles.appContainer}>
       <div className={styles.appHeader}>
         <h1>Wall Canvas</h1>
-        <p>A Graffiti Wall Canvas where Paint Looks Like Actual Paint</p>
+        <p>A Graffiti Wall Canvas where Paints Look Like Actual Paints</p>
         <ul className={styles.nav}>
           <li><a href="https://github.com/LeoYulinLi/wall-canvas" target="_blank" rel="noopener noreferrer">Source Code and Behind the Scene</a></li>
           <li><Link to="/credits">Credits</Link></li>

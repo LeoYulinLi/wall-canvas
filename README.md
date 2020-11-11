@@ -1,7 +1,7 @@
 # Wall Canvas
 ![Github Pages](https://github.com/LeoYulinLi/wall-canvas/workflows/Github%20Pages/badge.svg)
 
-A graffiti wall canvas where paint looks like actual paint.
+A graffiti wall canvas where paints look like actual paints.
 
 ## Live Demo
 https://leoyulinli.github.io/wall-canvas
@@ -10,7 +10,7 @@ https://leoyulinli.github.io/wall-canvas
 ![Screenshot](https://wallcanvas.sfo2.cdn.digitaloceanspaces.com/wall-canvas-01.png)
 
 ## Features
-The wall is not flat, so paints on the wall probably should not be flat either. That is main motive behind this project.
+The wall is not flat, so paints on the wall probably should not be flat either. That is the main motive behind this project.
 Even though this project is built using HTML5 2d canvas, some 3D rendering techniques were used. 
 The main technique was Phong reflection model.
 
@@ -31,10 +31,7 @@ You can read more about Phong reflection model here: https://en.wikipedia.org/wi
 #### Textures
 For this project, the texture (Tileable_Red_Brick_Texturise.jpg)
 and the normal map (Tileable_Red_Brick_Texturise_NORMAL.jpg)
-are used to compute the relection model.
-
-The normal map is encoded as an image, where the RGB values of each pixel represents the xyz value of a normal vector.
-Each value is ranging from 0 to 255 with a bias of 128.
+are used to compute the reflection model.
 
 #### Light Source
 For this project, the light is a constant vector for all points on the canvas,
@@ -44,13 +41,13 @@ simulating a light source really far away.
 const l = [1, 3, 6];
 ```
 
-This represents a light souce from somewhere a little bit to the right, above, and almost directly behind the viewer.
+This represents a light source from somewhere a little bit to the right, above, and almost directly behind the viewer.
 
 #### Creating Phong components
 In this project, the process of creating the ambient and diffuse component is combined by blending "shadows" directly
 onto the texture image.
 
-The "shadows" are determined by the angle, or the dot product between the light source vector (L) 
+The "shadows" are determined by the angle or the dot product between the light source vector (L) 
 and the normal vector (N) for each pixel. The smaller the angle, the brighter that pixel will be.
 Any normal vector with an angle greater than 90 degrees to the light source will render the corresponding pixel
 completely black.
@@ -119,7 +116,7 @@ for (let i = 0; i < data.length; i += 4) {
 }
 ```
 
-At the end, we blend everthing together to get the image to be painted onto the HTML canvas:
+In the end, we blend everything together to get the image to be painted onto the HTML canvas:
 ```typescript
 const i_s = alpha * specular[i] * 2000;
 
@@ -135,12 +132,12 @@ canvasData[i * 4 + 2] = i_d.b + i_s + (1 - alpha) * diffuse[i * 4 + 2];
 ```
 
 ### Paint Blur
-Another important factor of making paint looks real is the blurring effect on the edge.
+Another important factor in making paint looks real is the blurring effect on the edge.
 I took the code almost directly from this page, and they are doing a really good job explaining the process
-on how they came up with such solution with interactive examples. If you want to know more, please check out:
+of how they came up with such a solution with interactive examples. If you want to know more, please check out:
 http://perfectionkills.com/exploring-canvas-drawing-techniques/
 
-### And you can selector stoke width and color and save the canvas as an image
+### And you can selector stroke width and color and save the canvas as an image
 Pretty straight forward, just go try it :D
 
 ### Features in the Future
@@ -152,7 +149,7 @@ Pretty straight forward, just go try it :D
 ### JavaScript is slow! (╯°□°）╯︵ ┻━┻
 Well part of it was me being lazy at the beginning and were writing inefficient code, but since the shading are usually
 something happens in the rendering pipeline accelerated by hardware, being able to write something that works in pure
-JavaScript is a pretty fun experience to me already. There are some standard optimization I did to improve the
+JavaScript is a pretty fun experience for me already. There are some standard optimization I did to improve the
 performance, here are some of them:
 
 #### Only update the part of the canvas where the paint touches:
@@ -182,20 +179,20 @@ for (let t = 0; t < dx * dy; t++) {
   // then use i as a regular index ...
 }
 ```
-so since I have access to where the mouse were for the last stroke, I computed a bounding box and runs the shader only
-in the bound of that box. This improved the fram rate of the program from ~2FPS to ~30FPS. The performance gain is even
+so since I have access to where the mouse was for the last stroke, I computed a bounding box and runs the shader only
+in the bound of that box. This improved the frame rate of the program from ~2FPS to ~30FPS. The performance gain is even
 bigger on a large canvas.
 
 #### Lower the rate of mouse events
 ```typescript
 const setMousePosition = useCallback(throttle(_setMousePosition, 20), []);
 ```
-Since the render happends every mouse event, the mouse even rate is limited to make the rendering
+Since the render happens every mouse event, the mouse even rate is limited to make the rendering
 code run less often. This does make the stroke look less smooth, but is a quick solution to the problem without
 having to deal with mouse position queues and alteration of existing logics.
 
 ### Some other challenges
 I happened to have a screen with 200% scaling for my desktop, so I didn't realize the problem until I try my code on my
 laptop, which uses a non-integer scaling factor.
-Some methods do not expect floating point numbers. Instead of yelling at you, they just do nothing, which made the
-problem really hard to spot.
+Some methods do not expect floating-point numbers. Instead of yelling at you, they just do nothing, which made the
+the problem really hard to spot.
