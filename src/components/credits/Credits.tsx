@@ -12,6 +12,9 @@ const Credits: FC = () => {
       </div>
       <ul>
         <li>
+          Brick Wall: <a href="http://www.texturise.club/2014/03/tileable-red-brick-texture-maps.html">Tileable Red Brick Texture + (Maps)</a>
+        </li>
+        <li>
           Favicon: Icons made by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">Pixel perfect</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
         </li>
         <li>
