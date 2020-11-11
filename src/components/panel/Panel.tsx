@@ -4,7 +4,7 @@ import wall from "../../assets/Tileable_Red_Brick_Texturise.jpg";
 import throttle from "lodash.throttle";
 import alpha from "color-alpha";
 import { CompactPicker } from "react-color";
-import { Form } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import styles from "./Panel.module.scss";
 
 interface PaletteTypes {
@@ -12,14 +12,16 @@ interface PaletteTypes {
   setStrokeColor: Dispatch<SetStateAction<string>>
   strokeWidth: number,
   setStrokeWidth: Dispatch<SetStateAction<number>>
+  clearDrawing: () => void,
+  saveDrawing: () => void
 }
 
 const Palette: FC<PaletteTypes> = props => {
 
   // eslint-disable-next-line react/prop-types
-  const { strokeColor, setStrokeColor, strokeWidth, setStrokeWidth } = props;
+  const { strokeColor, setStrokeColor, strokeWidth, setStrokeWidth, clearDrawing, saveDrawing } = props;
 
-  const [colors, setColors] = useState([
+  const colors = [
     "#000000",
     "#ffffff",
     "#d00000",
@@ -44,7 +46,7 @@ const Palette: FC<PaletteTypes> = props => {
     "#9d9aff",
     "#e4a8f3",
     "#ff9ae6"
-  ]);
+  ];
 
   return (
     <div className={styles.palette}>
@@ -55,6 +57,8 @@ const Palette: FC<PaletteTypes> = props => {
           <Form.Control type="range" min={5} max={60} custom value={strokeWidth} onChange={event => setStrokeWidth(+event.target.value)}/>
         </Form.Group>
       </Form>
+      <Button type="button" variant="danger" onClick={clearDrawing}>Clear Drawing</Button>
+      <Button type="button" onClick={saveDrawing}>Save Drawing</Button>
     </div>
   );
 };
@@ -141,8 +145,42 @@ const Panel: FC<PanelProps> = props => {
 
   const setMousePosition = useCallback(throttle(_setMousePosition, 20), []);
 
-  console.log(canvas.current.getBoundingClientRect());
+  function clearDrawing() {
 
+    if (!diffuse) return;
+
+    const { width, height } = canvasSize;
+
+    const drawingContext = drawingLayer.current.getContext("2d")!;
+    const drawingImageData = drawingContext.getImageData(0, 0, width, height);
+    const { data: drawingData } = drawingImageData;
+
+    const canvasContext = canvas.current.getContext("2d")!;
+    const canvasImageData = canvasContext.getImageData(0, 0, width, height);
+    const { data: canvasData } = canvasImageData;
+
+    for (let i = 0; i < drawingData.length; i++) {
+      drawingData[i] = 0;
+    }
+
+    drawingContext.putImageData(drawingImageData, 0, 0, 0, 0, width, height);
+
+    for (let i = 0; i < diffuse.length; i++) {
+      canvasData[i] = diffuse[i];
+    }
+
+    canvasContext.putImageData(canvasImageData, 0, 0, 0, 0, width, height);
+  }
+
+  function saveDrawing() {
+    const link = document.createElement("a");
+    link.href = canvas.current.toDataURL("image/png")
+      .replace("data:image/png", "data:application/octet-stream");
+    link.download = "drawing.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   // initialize canvas
   useEffect(() => {
@@ -331,8 +369,6 @@ const Panel: FC<PanelProps> = props => {
 
     canvasContext.putImageData(canvasImageData, 0, 0, 0, 0, width, height);
 
-    console.log(diffuse[1200]);
-
   }, [shading, diffuse]);
 
   // draw and shade
@@ -403,7 +439,14 @@ const Panel: FC<PanelProps> = props => {
     <div className={styles.panel}>
       <div className={styles.canvasContainer} ref={divRef}>
       </div>
-      <Palette strokeColor={strokeColor} setStrokeColor={setStrokeColor} strokeWidth={strokeWidth} setStrokeWidth={setStrokeWidth} />
+      <Palette
+        strokeColor={strokeColor}
+        setStrokeColor={setStrokeColor}
+        strokeWidth={strokeWidth}
+        setStrokeWidth={setStrokeWidth}
+        clearDrawing={clearDrawing}
+        saveDrawing={saveDrawing}
+      />
     </div>
   );
 };

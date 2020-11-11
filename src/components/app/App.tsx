@@ -1,8 +1,6 @@
 import React, { FC } from "react";
-import logo from "../../assets/logo.svg";
 import styles from "./App.module.scss";
-import { Container, Navbar, NavDropdown } from "react-bootstrap";
-import Nav from "react-bootstrap/Nav";
+import { Container } from "react-bootstrap";
 import Panel from "../panel/Panel";
 
 const App: FC = () => {
