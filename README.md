@@ -33,6 +33,9 @@ For this project, the texture (Tileable_Red_Brick_Texturise.jpg)
 and the normal map (Tileable_Red_Brick_Texturise_NORMAL.jpg)
 are used to compute the relection model.
 
+The normal map is encoded as an image, where the RGB values of each pixel represents the xyz value of a normal vector.
+Each value is ranging from 0 to 255 with a bias of 128.
+
 #### Light Source
 For this project, the light is a constant vector for all points on the canvas,
 simulating a light source really far away. 
