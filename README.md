@@ -33,6 +33,9 @@ For this project, the texture (Tileable_Red_Brick_Texturise.jpg)
 and the normal map (Tileable_Red_Brick_Texturise_NORMAL.jpg)
 are used to compute the reflection model.
 
+The normal map is encoded as an image, where the RGB values of each pixel represents the xyz value of a normal vector.
+Each value is ranging from 0 to 255 with a bias of 128.
+
 #### Light Source
 For this project, the light is a constant vector for all points on the canvas,
 simulating a light source really far away. 
@@ -195,4 +198,4 @@ having to deal with mouse position queues and alteration of existing logics.
 I happened to have a screen with 200% scaling for my desktop, so I didn't realize the problem until I try my code on my
 laptop, which uses a non-integer scaling factor.
 Some methods do not expect floating-point numbers. Instead of yelling at you, they just do nothing, which made the
-the problem really hard to spot.
+the problem really hard to spot.Z
