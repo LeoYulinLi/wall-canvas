@@ -13,32 +13,3 @@
     display: flex;
     justify-content: center;
 }
-
-.palette {
-    display: flex;
-    bottom: 0;
-    background: #fff7f2;
-    align-items: center;
-
-    padding: 8px;
-    margin-top: 24px;
-
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 2px 10px, rgba(0, 0, 0, 0.16) 0px 2px 5px;
-
-    flex-wrap: wrap;
-    justify-content: center;
-
-    > * {
-        margin: 12px;
-    }
-}
-
-.strokePicker {
-    margin: 0;
-    width: 200px;
-}
-
-.colorPicker {
-    background: #fff7f2;
-    box-shadow: none;
-}

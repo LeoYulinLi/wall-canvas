@@ -1,86 +1,10 @@
-import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import normal from "../../assets/Tileable_Red_Brick_Texturise_NORMAL.jpg";
 import wall from "../../assets/Tileable_Red_Brick_Texturise.jpg";
 import throttle from "lodash.throttle";
 import alpha from "color-alpha";
-import { CompactPicker } from "react-color";
-import { Button, Form, Modal } from "react-bootstrap";
 import styles from "./Panel.module.scss";
-
-interface PaletteTypes {
-  strokeColor: string,
-  setStrokeColor: Dispatch<SetStateAction<string>>
-  strokeWidth: number,
-  setStrokeWidth: Dispatch<SetStateAction<number>>
-  clearDrawing: () => void,
-  saveDrawing: () => void
-}
-
-const Palette: FC<PaletteTypes> = props => {
-
-  // eslint-disable-next-line react/prop-types
-  const { strokeColor, setStrokeColor, strokeWidth, setStrokeWidth, clearDrawing, saveDrawing } = props;
-
-  const colors = [
-    "#000000",
-    "#ffffff",
-    "#d00000",
-    "#ea8c00",
-    "#eac300",
-    "#00a000",
-    "#b7ea00",
-    "#0000c0",
-    "#00c7ea",
-    "#7500ea",
-    "#bf00ea",
-    "#ea00b0",
-    "#555555",
-    "#d2d2d2",
-    "#ffc6c6",
-    "#ffd999",
-    "#fff0ab",
-    "#adffad",
-    "#ecffb2",
-    "#9ad7ff",
-    "#9affe8",
-    "#9d9aff",
-    "#e4a8f3",
-    "#ff9ae6"
-  ];
-
-  const [showModal, setShowModal] = useState(false);
-
-  return (
-    <div className={styles.palette}>
-      <CompactPicker onChange={color => setStrokeColor(color.hex)} color={strokeColor} colors={colors} className={styles.colorPicker}/>
-      <Form>
-        <Form.Group controlId="strokeWidth" className={styles.strokePicker}>
-          <Form.Label>Stroke Width: {strokeWidth}</Form.Label>
-          <Form.Control type="range" min={5} max={60} custom value={strokeWidth} onChange={event => setStrokeWidth(+event.target.value)}/>
-        </Form.Group>
-      </Form>
-      <Button type="button" variant="danger" onClick={() => setShowModal(true)}>Clear Drawing</Button>
-      <Button type="button" onClick={saveDrawing}>Save Drawing</Button>
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to clear the current drawings? This action cannot be undone.</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          <Button variant="danger" onClick={() => {
-            clearDrawing();
-            setShowModal(false);
-          }}>
-            Clear Drawing
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
-  );
-};
+import Palette from "../palette/Palette";
 
 interface Point2D {
   x: number,
